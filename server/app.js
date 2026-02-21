@@ -1,6 +1,6 @@
 /*eslint max-lines: ["warn", {"max": 500, "skipBlankLines": true, "skipComments": true}]*/
 // Set working directory to project root
-import { dirname }       from 'path';
+import { dirname, extname, isAbsolute, normalize } from 'path';
 import { fileURLToPath } from 'url';
 import packageJSON from './../package.json' with { type: 'json' };
 
@@ -59,6 +59,8 @@ import cors from 'cors';
 
 const nodeEnv = config.get('node_env');
 const isLocalEnvironment = config.get('local_environments').includes(nodeEnv);
+const isElectronEnvironment = process.env.HB_ELECTRON === '1';
+const localImageExtensions = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg', '.tif', '.tiff', '.avif', '.ico']);
 
 const corsOptions = {
 	origin : (origin, callback)=>{
@@ -522,6 +524,46 @@ if(isLocalEnvironment){
 		const payload = jwt.encode({ username: username, issued: new Date }, config.get('secret'));
 		return res.json(payload);
 	});
+
+	// Serve local files for Electron-only local image usage.
+	if(isElectronEnvironment){
+		app.get('/local-file', (req, res)=>{
+			const requestAddress = req.socket?.remoteAddress;
+			const isLoopbackAddress = requestAddress === '127.0.0.1' || requestAddress === '::1' || requestAddress === '::ffff:127.0.0.1';
+			if(!isLoopbackAddress) {
+				return res.status(403).json({ message: 'Local file access is only allowed from loopback requests.' });
+			}
+
+			const inputPath = req.query?.path;
+			if(typeof inputPath !== 'string' || !inputPath.trim()) {
+				return res.status(400).json({ message: 'Missing required local image path.' });
+			}
+
+			const filePath = normalize(inputPath.trim());
+			if(!isAbsolute(filePath)) {
+				return res.status(400).json({ message: 'Local image path must be absolute.' });
+			}
+
+			const extension = extname(filePath).toLowerCase();
+			if(!localImageExtensions.has(extension)) {
+				return res.status(415).json({ message: 'Only local image files are supported.' });
+			}
+
+			let fileStats = null;
+			try {
+				fileStats = fs.statSync(filePath);
+			} catch {
+				return res.status(404).json({ message: 'Local image file not found.' });
+			}
+
+			if(!fileStats.isFile()) {
+				return res.status(400).json({ message: 'Local image path must reference a file.' });
+			}
+
+			res.set('Cache-Control', 'no-store');
+			return res.sendFile(filePath);
+		});
+	}
 }
 
 // Add Static Local Paths
@@ -551,6 +593,7 @@ const renderPage = async (req, res)=>{
 	// Create configuration object
 	const configuration = {
 		local       : isLocalEnvironment,
+		electron    : isElectronEnvironment,
 		publicUrl   : config.get('publicUrl') ?? '',
 		baseUrl     : `${req.protocol}://${req.get('host')}`,
 		environment : nodeEnv,

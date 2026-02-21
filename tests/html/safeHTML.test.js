@@ -55,5 +55,36 @@ test('Javascript via event delegation', function() {
 	expect(rendered).toBe('<div id="parent"><button id="child">Click me</button></div>');
 });
 
+test('Electron mode rewrites local file src paths', function() {
+	const originalConfig = global.config;
+	global.config = { electron: true };
 
+	const source = `<img src="file:///Users/test/images/cover.png">`;
+	const rendered = safeHTML(source);
+
+	global.config = originalConfig;
+	expect(rendered).toBe('<img src="/local-file?path=%2FUsers%2Ftest%2Fimages%2Fcover.png">');
+});
+
+test('Electron mode rewrites local file urls in style attributes', function() {
+	const originalConfig = global.config;
+	global.config = { electron: true };
+
+	const source = `<div style="background-image: url('file:///Users/test/images/parchment.png');"></div>`;
+	const rendered = safeHTML(source);
+
+	global.config = originalConfig;
+	expect(rendered).toBe('<div style="background-image: url(\'/local-file?path=%2FUsers%2Ftest%2Fimages%2Fparchment.png\');"></div>');
+});
+
+test('Web mode leaves local file src paths unchanged', function() {
+	const originalConfig = global.config;
+	global.config = { electron: false };
+
+	const source = `<img src="file:///Users/test/images/cover.png">`;
+	const rendered = safeHTML(source);
+
+	global.config = originalConfig;
+	expect(rendered).toBe('<img src="file:///Users/test/images/cover.png">');
+});
 
