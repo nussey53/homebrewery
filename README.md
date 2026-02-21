@@ -3,17 +3,14 @@
 [![Homebrewery](https://circleci.com/gh/naturalcrit/homebrewery/tree/master.svg?style=svg)](https://app.circleci.com/pipelines/github/naturalcrit/homebrewery?branch=master)
 
 The Homebrewery is a tool for making authentic looking [D&D content][dnd-content-url]
-using [Markdown][markdown-url]. It is distributed under the terms of the [MIT License](./license).
+using [Markdown][markdown-url]. It is proprietary software. See [LICENSE.md](./LICENSE.md) for details.
 
 [dnd-content-url]: https://dnd.wizards.com/products/tabletop-games/rpg-products/rpg_playershandbook
 [markdown-url]: https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet
 
 ## Quick Start
-The easiest way to get started using The Homebrewery is to use it
-[on our website][homebrewery-url]. The code is open source, so feel free to
-clone it and tinker with it. If you want to make changes to the code, you can run
-your own local version for testing by following the installation instructions
-below.
+If you want to run your own local version for testing, follow the installation
+instructions below.
 
 [homebrewery-url]: https://homebrewery.naturalcrit.com
 
@@ -129,9 +126,12 @@ You can check out the [changelog](./changelog.md).
 
 ## License
 
-This project is licensed under the [MIT license](./license), which means you
-are free to use The Homebrewery in any way that you want, except for claiming
-that you made it yourself.
+This software is proprietary. Copyright (c) 2026 Jeremy Nussey. All rights
+reserved. See [LICENSE.md](./LICENSE.md) for full terms.
+
+This project is derived from the [Homebrewery](https://github.com/naturalcrit/homebrewery)
+project by Scott Tolksdorf, originally licensed under the MIT License. Third-party
+component licenses are listed in [THIRD-PARTY-LICENSES](./THIRD-PARTY-LICENSES).
 
 If you wish to sell, or in some way gain profit for, what's created on this site,
 it's your responsibility to ensure you have the proper licenses/rights for any
