@@ -12,8 +12,6 @@ using [Markdown][markdown-url]. It is proprietary software. See [LICENSE.md](./L
 If you want to run your own local version for testing, follow the installation
 instructions below.
 
-[homebrewery-url]: http://localhost:8000
-
 ### Installation
 First, install three programs that The Homebrewery requires to run and retrieve
 updates:

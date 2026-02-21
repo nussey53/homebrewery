@@ -57,37 +57,42 @@ test('Javascript via event delegation', function() {
 
 test('Electron mode rewrites local file src paths', function() {
 	const originalConfig = global.config;
-	global.config = { electron: true };
-
-	const source = `<img src="file:///Users/test/images/cover.png">`;
-	const rendered = safeHTML(source);
-
-	global.config = originalConfig;
+	let rendered;
+	try {
+		global.config = { electron: true };
+		const source = `<img src="file:///Users/test/images/cover.png">`;
+		rendered = safeHTML(source);
+	} finally {
+		global.config = originalConfig;
+	}
 	expect(rendered).toBe('<img src="/local-file?path=%2FUsers%2Ftest%2Fimages%2Fcover.png">');
 });
 
 test('Electron mode rewrites local file urls in style attributes', function() {
 	const originalConfig = global.config;
-	global.config = { electron: true };
-
-	const source = `<div style="background-image: url('file:///Users/test/images/parchment.png');"></div>`;
-	const rendered = safeHTML(source);
-
-	global.config = originalConfig;
+	let rendered;
+	try {
+		global.config = { electron: true };
+		const source = `<div style="background-image: url('file:///Users/test/images/parchment.png');"></div>`;
+		rendered = safeHTML(source);
+	} finally {
+		global.config = originalConfig;
+	}
 	expect(rendered).toBe('<div style="background-image: url(\'/local-file?path=%2FUsers%2Ftest%2Fimages%2Fparchment.png\');"></div>');
 });
 
 test('Web mode leaves local file src paths unchanged', function() {
 	const originalConfig = global.config;
-	global.config = { electron: false };
-
-	const source = `<img src="file:///Users/test/images/cover.png">`;
-	const rendered = safeHTML(source);
-
-	global.config = originalConfig;
+	let rendered;
+	try {
+		global.config = { electron: false };
+		const source = `<img src="file:///Users/test/images/cover.png">`;
+		rendered = safeHTML(source);
+	} finally {
+		global.config = originalConfig;
+	}
 	expect(rendered).toBe('<img src="file:///Users/test/images/cover.png">');
 });
-
 test('Blacklisted tags - script', function() {
 	const source = `<div>Before</div><script>alert('xss')</script><div>After</div>`;
 	const rendered = safeHTML(source);
@@ -120,67 +125,79 @@ test('JavaScript in href with Unicode whitespace', function() {
 
 test('Electron mode - Windows UNC path', function() {
 	const originalConfig = global.config;
-	global.config = { electron: true };
-
-	const source = `<img src="file://server/share/image.png">`;
-	const rendered = safeHTML(source);
-
-	global.config = originalConfig;
+	let rendered;
+	try {
+		global.config = { electron: true };
+		const source = `<img src="file://server/share/image.png">`;
+		rendered = safeHTML(source);
+	} finally {
+		global.config = originalConfig;
+	}
 	expect(rendered).toBe('<img src="/local-file?path=%5C%5Cserver%5Cshare%5Cimage.png">');
 });
 
 test('Electron mode - Windows drive letter path', function() {
 	const originalConfig = global.config;
-	global.config = { electron: true };
-
-	const source = `<img src="file:///C:/Users/test/image.png">`;
-	const rendered = safeHTML(source);
-
-	global.config = originalConfig;
+	let rendered;
+	try {
+		global.config = { electron: true };
+		const source = `<img src="file:///C:/Users/test/image.png">`;
+		rendered = safeHTML(source);
+	} finally {
+		global.config = originalConfig;
+	}
 	expect(rendered).toBe('<img src="/local-file?path=C%3A%2FUsers%2Ftest%2Fimage.png">');
 });
 
 test('Electron mode - href with file URL', function() {
 	const originalConfig = global.config;
-	global.config = { electron: true };
-
-	const source = `<a href="file:///home/user/document.pdf">Doc</a>`;
-	const rendered = safeHTML(source);
-
-	global.config = originalConfig;
+	let rendered;
+	try {
+		global.config = { electron: true };
+		const source = `<a href="file:///home/user/document.pdf">Doc</a>`;
+		rendered = safeHTML(source);
+	} finally {
+		global.config = originalConfig;
+	}
 	expect(rendered).toBe('<a href="/local-file?path=%2Fhome%2Fuser%2Fdocument.pdf">Doc</a>');
 });
 
 test('Electron mode - style with multiple file URLs', function() {
 	const originalConfig = global.config;
-	global.config = { electron: true };
-
-	const source = `<div style="background: url('file:///path/bg.png'), url('file:///path/overlay.png');"></div>`;
-	const rendered = safeHTML(source);
-
-	global.config = originalConfig;
+	let rendered;
+	try {
+		global.config = { electron: true };
+		const source = `<div style="background: url('file:///path/bg.png'), url('file:///path/overlay.png');"></div>`;
+		rendered = safeHTML(source);
+	} finally {
+		global.config = originalConfig;
+	}
 	expect(rendered).toBe(`<div style="background: url('/local-file?path=%2Fpath%2Fbg.png'), url('/local-file?path=%2Fpath%2Foverlay.png');"></div>`);
 });
 
 test('Invalid file URL in Electron mode', function() {
 	const originalConfig = global.config;
-	global.config = { electron: true };
-
-	const source = `<img src="file://not-a-valid-url[">`;
-	const rendered = safeHTML(source);
-
-	global.config = originalConfig;
+	let rendered;
+	try {
+		global.config = { electron: true };
+		const source = `<img src="file://not-a-valid-url[">`;
+		rendered = safeHTML(source);
+	} finally {
+		global.config = originalConfig;
+	}
 	expect(rendered).toBe('<img src="file://not-a-valid-url[">');
 });
 
 test('Non-file protocol URL in Electron mode', function() {
 	const originalConfig = global.config;
-	global.config = { electron: true };
-
-	const source = `<img src="https://example.com/image.png">`;
-	const rendered = safeHTML(source);
-
-	global.config = originalConfig;
+	let rendered;
+	try {
+		global.config = { electron: true };
+		const source = `<img src="https://example.com/image.png">`;
+		rendered = safeHTML(source);
+	} finally {
+		global.config = originalConfig;
+	}
 	expect(rendered).toBe('<img src="https://example.com/image.png">');
 });
 

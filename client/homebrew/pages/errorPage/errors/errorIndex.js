@@ -19,7 +19,7 @@ const errorIndex = (props)=>{
 			We aren't sure what happened, but our server wasn't able to find what you
 			were looking for.`,
 
-		// General Google load error
+		// General external storage retrieval error
 		'01' : dedent`
 			## An error occurred while retrieving this brew.
 			
@@ -27,7 +27,7 @@ const errorIndex = (props)=>{
 			The requested document appears to reference an external storage provider
 			that is disabled in this build.`,
 
-		// Google Drive - 404 : brew deleted or access denied
+		// External storage - unsupported ID or access denied
 		'02' : dedent`
 			## This brew cannot be loaded from external storage.
 			
@@ -140,16 +140,6 @@ const errorIndex = (props)=>{
 
 		**Brew ID:**  ${props.brew.brewId}`,
 
-		// Google ID validation error
-		'12' : dedent`
-		## No Google document could be found.
-		
-		The server could not locate the Google document. The Google ID failed the validation check.
-		
-		:
-
-		**Brew ID:**  ${props.brew.brewId}`,
-
 		// Database Connection Lost
 		'13' : dedent`
 		## Database connection has been lost.
@@ -162,7 +152,7 @@ const errorIndex = (props)=>{
 		
 		You are trying to access the account page, but are not signed in to an account.
 		
-			Please login from the navigation menu and try again.`,
+		Please login from the navigation menu and try again.`,
 
 		// Brew locked by Administrators error
 		'51' : dedent`

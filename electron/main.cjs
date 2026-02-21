@@ -27,29 +27,39 @@ const findAvailablePort = async (startPort = 8000, attempts = 30)=>{
 	throw new Error(`No open port found between ${startPort} and ${startPort + attempts - 1}.`);
 };
 
-const waitForServer = (url, timeoutMs = 30000)=>new Promise((resolve, reject)=>{
+const waitForServer = (url, timeoutMs = 30000, timeoutMsPerRequest = 2000)=>new Promise((resolve, reject)=>{
 	const startTime = Date.now();
+	let isFinished = false;
+
+	const retryOrReject = ()=>{
+		if(isFinished) return;
+		if(Date.now() - startTime > timeoutMs) {
+			isFinished = true;
+			reject(new Error(`Timed out waiting for server at ${url}.`));
+			return;
+		}
+		setTimeout(attempt, 300);
+	};
 
 	const attempt = ()=>{
+		if(isFinished) return;
 		const request = http.get(url, (response)=>{
 			response.resume();
+			if(isFinished) return;
 			if(response.statusCode && response.statusCode < 500) {
+				isFinished = true;
 				resolve();
 				return;
 			}
-			if(Date.now() - startTime > timeoutMs) {
-				reject(new Error(`Timed out waiting for server at ${url}.`));
-				return;
-			}
-			setTimeout(attempt, 300);
+			retryOrReject();
+		});
+
+		request.setTimeout(timeoutMsPerRequest, ()=>{
+			request.destroy(new Error(`Server readiness request timed out after ${timeoutMsPerRequest}ms`));
 		});
 
 		request.on('error', ()=>{
-			if(Date.now() - startTime > timeoutMs) {
-				reject(new Error(`Timed out waiting for server at ${url}.`));
-				return;
-			}
-			setTimeout(attempt, 300);
+			retryOrReject();
 		});
 	};
 
@@ -75,7 +85,17 @@ const startServer = ()=>{
 
 	serverProcess.on('exit', (code)=>{
 		if(!isQuitting) {
+			isQuitting = true;
 			dialog.showErrorBox('Homebrewery server stopped', `The embedded server exited with code ${code ?? 'unknown'}.`);
+			app.quit();
+		}
+	});
+
+	serverProcess.on('error', (err)=>{
+		if(!isQuitting) {
+			isQuitting = true;
+			const errorDetails = err?.stack || err?.message || String(err);
+			dialog.showErrorBox('Homebrewery server failed to start', `Unable to spawn embedded server process.\n\n${errorDetails}`);
 			app.quit();
 		}
 	});

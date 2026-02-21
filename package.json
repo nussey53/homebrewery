@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/nussey53/homebrewery.git"
   },
   "scripts": {
     "dev": "node --experimental-require-module scripts/dev.js",
@@ -47,7 +47,9 @@
     "postinstall": "npm run build",
     "start": "node --experimental-require-module server.js",
     "docker:build": "docker build -t ${DOCKERID}/homebrewery:$npm_package_version .",
-    "docker:publish": "docker login && docker push  ${DOCKERID}/homebrewery:$npm_package_version"
+    "docker:publish": "docker login && docker push  ${DOCKERID}/homebrewery:$npm_package_version",
+    "hooks:install": "git config core.hooksPath .githooks",
+    "hooks:uninstall": "git config --unset core.hooksPath || true"
   },
   "author": "stolksdorf",
   "license": "SEE LICENSE IN LICENSE.md",

@@ -131,6 +131,17 @@ const api = {
 				throw { HBErrorCode: '51', code: stub.lock.code, message: stub.lock.shareMessage, brewId: stub.shareId, brewTitle: stub.title, brewAuthors: stub.authors };
 			}
 
+			if(!GOOGLE_INTEGRATION_ENABLED && googleId && !stub?.text && !stub?.textBin) {
+				throw {
+					name        : 'BrewLoad Error',
+					message     : 'google-backed stub unavailable: integration disabled',
+					status      : 400,
+					HBErrorCode : '01',
+					accessType  : accessType,
+					brewId      : id
+				};
+			}
+
 			// If there's a google id, get it if requesting the full brew or if no stub found yet
 			if(GOOGLE_INTEGRATION_ENABLED && googleId && (!stubOnly || !stub)) {
 				const oAuth2Client = isOwner ? GoogleActions.authCheck(req.account, res) : undefined;

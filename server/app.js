@@ -406,7 +406,10 @@ app.get('/share/:id', dbCheck, asyncHandler(getBrew('share')), asyncHandler(asyn
 
 	// increase visitor view count, do not include visits by author(s)
 	if(!brew.authors.includes(req.account?.username)){
-		await HomebrewModel.increaseView({ shareId: brew.shareId });
+		HomebrewModel.increaseView({ shareId: brew.shareId })
+			.catch((error)=>{
+				console.warn('Unable to increase brew view count', error);
+			});
 	};
 
 	brew.authors.includes(req.account?.username) ? sanitizeBrew(req.brew, 'shareAuthor') : sanitizeBrew(req.brew, 'share');

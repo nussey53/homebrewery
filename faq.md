@@ -77,7 +77,7 @@ This standalone build uses local login only and does not rely on Google sign-in.
 
 Homebrewery is specifically designed to not hold personal information as a measure to protect both users and admin, and does not require an email address.  Thus it would be difficult to send a new password to a user.  Reach out to the moderators on [the subreddit](https://www.reddit.com/r/homebrewery) with your Homebrewery username.  
 
-If you have linked your account with a Google account, you would change your password within Google.
+This standalone build does not support Google-linked account password recovery.
 
 ### Is there a way to restore a previous version of my brew?
 
