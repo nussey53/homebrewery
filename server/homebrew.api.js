@@ -413,10 +413,14 @@ const api = {
 			if(!updated) return;
 		}
 
-		if(brew.googleId) {
-			// If the google id exists after all those actions, exclude the props that are stored in google and aren't needed for rendering the brew items
+		if(GOOGLE_INTEGRATION_ENABLED && brew.googleId) {
+			// If Google integration is enabled and this brew is backed by Google, keep only stubbed local fields.
 			api.excludeStubProps(brew);
 		} else {
+			// Disable legacy Google linkage in local-only mode and keep full content in local storage.
+			if(!GOOGLE_INTEGRATION_ENABLED && brew.googleId) {
+				brew.googleId = undefined;
+			}
 			// Compress brew text to binary before saving
 			brew.textBin = zlib.deflateRawSync(brew.text);
 			// Delete the non-binary text field since it's not needed anymore
