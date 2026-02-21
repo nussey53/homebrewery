@@ -40,7 +40,7 @@ If you want to save ink or have a monochrome printer, add the **PRINT → {{fas,
 
 {{artist,bottom:160px,left:100px
 ##### Homebrew Mug
-[naturalcrit](https://homebrew.naturalcrit.com)
+[homebrewery](/)
 }}
 
 {{pageNumber 1}}
@@ -70,7 +70,7 @@ This tool will **always** be free, never have ads, and we will never offer any "
 - Report technical issues or provide feedback on the [GitHub Repo](https://github.com/naturalcrit/homebrewery/).
 
 ### Legal Junk
-The Homebrewery is licensed using the [MIT License](https://github.com/naturalcrit/homebrewery/blob/master/license). Which means you are free to use The Homebrewery codebase any way that you want, except for claiming that you made it yourself.
+This software is proprietary. Copyright (c) 2026 Jeremy Nussey. All rights reserved. See [LICENSE.md](./LICENSE.md) for full terms. This project is derived from the Homebrewery project by Scott Tolksdorf, originally licensed under the MIT License.
 
 If you wish to sell or in some way gain profit for what's created on this site, it's your responsibility to ensure you have the proper licenses/rights for any images or resources used.
 #### Crediting Us

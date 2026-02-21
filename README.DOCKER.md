@@ -44,7 +44,7 @@ Make an changes you need to `config/docker.json` then build the image. If it doe
 ```
 {
 "host" : "localhost:8000",
-"naturalcrit_url" : "local.naturalcrit.com:8010",
+"naturalcrit_url" : "localhost:8000",
 "secret" : "secret",
 "web_port" : 8000,
 "mongodb_uri": "mongodb://172.17.0.2/homebrewery",
@@ -127,4 +127,3 @@ docker run --name homebrewery-app -d --restart unless-stopped -e NODE_ENV=docker
 # Make sure you run this in the homebrewery directory
 docker run --name homebrewery-app -d --restart unless-stopped -e NODE_ENV=docker -v %cd%/config/docker.json:/usr/src/app/config/docker.json -p 8000:8000 docker.io/library/homebrewery:latest
 ```
-

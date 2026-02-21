@@ -67,17 +67,17 @@ pre {
 
 ### The site is down for me! Anyone else?
 
-You can check the site status here: [Everyone or Just Me](https://downforeveryoneorjustme.com/homebrewery.naturalcrit.com)
+Check your local server status by confirming the app is running and reachable at your configured URL (default: `http://localhost:8000`).
 
 ### Why am I getting an error when trying to save, and my account is linked to Google?
 
-A sign-in with Google only lasts a year until the authentication expires.  You must go [here](https://www.naturalcrit.com/login), click the *Log-out* button, and then sign back in using your Google account.
+This standalone build uses local login only and does not rely on Google sign-in.
 
 ### I lost my password, how do I reset it?  How do I change my password?
 
 Homebrewery is specifically designed to not hold personal information as a measure to protect both users and admin, and does not require an email address.  Thus it would be difficult to send a new password to a user.  Reach out to the moderators on [the subreddit](https://www.reddit.com/r/homebrewery) with your Homebrewery username.  
 
-If you have linked your account with a Google account, you would change your password within Google.
+This standalone build does not support Google-linked account password recovery.
 
 ### Is there a way to restore a previous version of my brew?
 
@@ -127,7 +127,7 @@ The Homebrewery defaults to creating US Letter page sizes.  If you are printing 
 
 ### Typing `#### Adhesion` in the text editor doesn't show the header at all in the completed page?
 
-Your ad-blocking software is mistakenly assuming your text to be an ad. We recommend whitelisting homebrewery.naturalcrit.com in your ad-blocking software, as we have no ads.
+Your ad-blocking software is mistakenly assuming your text to be an ad. We recommend whitelisting your local Homebrewery host (for example `localhost`) in your ad-blocking software, as we have no ads.
 
 ### My username appears as _hidden_ when checking my brews in the Vault, why is that?
 

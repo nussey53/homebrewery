@@ -14,9 +14,8 @@ const AccountPage = (props)=>{
 	React.useEffect(()=>{
 		if(!saveLocation && accountDetails.username) {
 			SAVEKEY = `HB_editor_defaultSave_${accountDetails.username}`;
-			// if no SAVEKEY in local storage, default save location to Google Drive if user has Google account.
 			let saveLocation = window.localStorage.getItem(SAVEKEY);
-			saveLocation = saveLocation ?? (accountDetails.googleId ? 'GOOGLE-DRIVE' : 'HOMEBREWERY');
+			saveLocation = saveLocation === 'HOMEBREWERY' ? saveLocation : 'HOMEBREWERY';
 			setActiveSaveLocation(saveLocation);
 		}
 	}, []);
@@ -28,8 +27,7 @@ const AccountPage = (props)=>{
 	};
 
 	// todo: should this be a set of radio buttons (well styled) since it's either/or choice?
-	const renderSaveLocationButton = (name, key, shouldRender = true)=>{
-		if(!shouldRender) return null;
+	const renderSaveLocationButton = (name, key)=>{
 		return (
 			<button className={saveLocation === key ? 'active' : ''} onClick={()=>{setActiveSaveLocation(key);}}>
 				{name}
@@ -51,22 +49,8 @@ const AccountPage = (props)=>{
 					<p><strong>Brews on Homebrewery: </strong>{accountDetails.mongoCount}</p>
 				</div>
 				<div className='dataGroup'>
-					<h3>Google Information <i className='fab fa-google-drive'></i></h3>
-					<p><strong>Linked to Google: </strong>{accountDetails.googleId ? 'YES' : 'NO'}</p>
-					{accountDetails.googleId && (
-						<p>
-							<strong>Brews on Google Drive: </strong>{accountDetails.googleCount ?? (
-								<>
-									Unable to retrieve files - <a href='https://github.com/naturalcrit/homebrewery/discussions/1580'>follow these steps to renew your Google credentials.</a>
-								</>
-							)}
-						</p>
-					)}
-				</div>
-				<div className='dataGroup'>
 					<h4>Default Save Location</h4>
 					{renderSaveLocationButton('Homebrewery', 'HOMEBREWERY')}
-					{renderSaveLocationButton('Google Drive', 'GOOGLE-DRIVE', accountDetails.googleId)}
 				</div>
 			</>
 		);

@@ -5,19 +5,6 @@ import Nav from './nav.jsx';
 
 const Account = createReactClass({
 	displayName     : 'AccountNavItem',
-	getInitialState : function() {
-		return {
-			url : ''
-		};
-	},
-
-	componentDidMount : function(){
-		if(typeof window !== 'undefined'){
-			this.setState({
-				url : window.location.href
-			});
-		}
-	},
 
 	handleLogout : function(){
 		if(confirm('Are you sure you want to log out?')) {
@@ -95,17 +82,9 @@ const Account = createReactClass({
 			</Nav.dropdown>;
 		}
 
-		//  Logged out
-		//  LOCAL ONLY
-		if(global.config.local) {
-			return <Nav.item color='teal' icon='fas fa-sign-in-alt' onClick={this.localLogin}>
-				login
-			</Nav.item>;
-		};
-
 		// Logged out
-		// Production site
-		return <Nav.item href={`https://www.naturalcrit.com/login?redirect=${this.state.url}`} color='teal' icon='fas fa-sign-in-alt'>
+		// Standalone mode uses local login only.
+		return <Nav.item color='teal' icon='fas fa-sign-in-alt' onClick={this.localLogin}>
 			login
 		</Nav.item>;
 	}

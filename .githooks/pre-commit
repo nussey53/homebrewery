@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+set -eu
+
+if [ "${SKIP_CODERABBIT:-0}" = "1" ]; then
+	echo "Skipping CodeRabbit pre-commit check (SKIP_CODERABBIT=1)."
+	exit 0
+fi
+
+if ! command -v coderabbit >/dev/null 2>&1; then
+	echo "Error: 'coderabbit' CLI was not found in PATH."
+	echo "Install CodeRabbit CLI or bypass once with: SKIP_CODERABBIT=1 git commit ..."
+	exit 1
+fi
+
+echo "Running CodeRabbit review on uncommitted changes..."
+coderabbit review --plain --type uncommitted

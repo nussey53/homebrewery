@@ -34,7 +34,6 @@ import { makePatches, stringifyPatches } from '@sanity/diff-match-patch';
 import ShareNavItem              from '../../navbar/share.navitem.jsx';
 import LockNotification from './lockNotification/lockNotification.jsx';
 import { updateHistory, versionHistoryGarbageCollection } from '../../utils/versionHistory.js';
-import googleDriveIcon from '../../googleDrive.svg';
 
 const SAVE_TIMEOUT = 10000;
 const UNSAVED_WARNING_TIMEOUT = 900000; //Warn user afer 15 minutes of unsaved changes
@@ -59,7 +58,6 @@ const EditPage = (props)=>{
 	const [currentBrew               , setCurrentBrew               ] = useState(props.brew);
 	const [isSaving                  , setIsSaving                  ] = useState(false);
 	const [lastSavedTime             , setLastSavedTime             ] = useState(new Date());
-  const [saveGoogle                , setSaveGoogle                ] = useState(!!props.brew.googleId);
 	const [error                     , setError                     ] = useState(null);
 	const [HTMLErrors                , setHTMLErrors                ] = useState(Markdown.validate(props.brew.text));
 	const [currentEditorViewPageNum  , setCurrentEditorViewPageNum  ] = useState(1);
@@ -67,9 +65,6 @@ const EditPage = (props)=>{
 	const [currentBrewRendererPageNum, setCurrentBrewRendererPageNum] = useState(1);
 	const [themeBundle               , setThemeBundle               ] = useState({});
 	const [unsavedChanges            , setUnsavedChanges            ] = useState(false);
-	const [alertTrashedGoogleBrew    , setAlertTrashedGoogleBrew    ] = useState(props.brew.trashed);
-	const [alertLoginToTransfer      , setAlertLoginToTransfer      ] = useState(false);
-	const [confirmGoogleTransfer     , setConfirmGoogleTransfer     ] = useState(false);
 	const [autoSaveEnabled           , setAutoSaveEnabled           ] = useState(true);
 	const [warnUnsavedChanges        , setWarnUnsavedChanges        ] = useState(true);
 
@@ -120,10 +115,6 @@ const EditPage = (props)=>{
 		if(autoSaveEnabled) trySave(false, hasChange);
 	}, [currentBrew]);
 
-	useEffect(()=>{
-		trySave(true);
-	}, [saveGoogle]);
-
 	const handleSplitMove = ()=>{
 		editorRef.current?.update();
 	};
@@ -164,28 +155,6 @@ const EditPage = (props)=>{
 		warnUnsavedTimeout.current = setTimeout(()=>setWarnUnsavedChanges(true), UNSAVED_WARNING_TIMEOUT); // 15 minutes between unsaved work warnings
 	};
 
-	const handleGoogleClick = ()=>{
-		if(!global.account?.googleId) {
-			setAlertLoginToTransfer(true);
-			return;
-		}
-
-		setConfirmGoogleTransfer((prev)=>!prev);
-		setError(null);
-	};
-
-	const closeAlerts = (e)=>{
-		e.stopPropagation(); //Only handle click once so alert doesn't reopen
-		setAlertTrashedGoogleBrew(false);
-		setAlertLoginToTransfer(false);
-		setConfirmGoogleTransfer(false);
-	};
-
-	const toggleGoogleStorage = ()=>{
-		setSaveGoogle((prev)=>!prev);
-		setError(null);
-	};
-
 	const trySave = (immediate = false, hasChanges = true)=>{
 		clearTimeout(saveTimeout.current);
 		if(isSaving) return;
@@ -195,7 +164,7 @@ const EditPage = (props)=>{
 		saveTimeout.current = setTimeout(async ()=>{
 			setIsSaving(true);
 			setError(null);
-			await save(currentBrew, saveGoogle)
+			await save(currentBrew)
 			.catch((err)=>{
 				setError(err);
 			});
@@ -205,7 +174,7 @@ const EditPage = (props)=>{
 		}, newTimeout);
 	};
 
-	const save = async (brew, saveToGoogle)=>{
+	const save = async (brew)=>{
 		setHTMLErrors(Markdown.validate(brew.text));
 
 		await updateHistory(brew).catch(console.error);
@@ -223,11 +192,8 @@ const EditPage = (props)=>{
 		};
 
 		const compressedBrew = gzipSync(strToU8(JSON.stringify(brewToSave)));
-		const transfer = saveToGoogle === _.isNil(brew.googleId);
-		const params = transfer ? `?${saveToGoogle ? 'saveToGoogle' : 'removeFromGoogle'}=true` : '';
-
 		const res = await request
-			.put(`/api/update/${brewToSave.editId}${params}`)
+			.put(`/api/update/${brewToSave.editId}`)
 			.set('Content-Encoding', 'gzip')
 			.set('Content-Type', 'application/json')
 			.send(compressedBrew)
@@ -238,10 +204,9 @@ const EditPage = (props)=>{
 		if(!res) return;
 
 		const updatedFields = {
-			googleId : res.body.googleId ?? null,
-			editId   : res.body.editId,
-			shareId  : res.body.shareId,
-			version  : res.body.version
+			editId  : res.body.editId,
+			shareId : res.body.shareId,
+			version : res.body.version
 		};
 
 		lastSavedBrew.current = {
@@ -256,41 +221,6 @@ const EditPage = (props)=>{
 
 		history.replaceState(null, null, `/edit/${res.body.editId}`);
 	};
-
-	const renderGoogleDriveIcon = ()=>(
-		<Nav.item className='googleDriveStorage' onClick={handleGoogleClick}>
-			<img src={googleDriveIcon} className={saveGoogle ? '' : 'inactive'} alt='Google Drive icon' />
-
-			{confirmGoogleTransfer && (
-				<div className='errorContainer' onClick={closeAlerts}>
-					{saveGoogle
-						? 'Would you like to transfer this brew from your Google Drive storage back to the Homebrewery?'
-						: 'Would you like to transfer this brew from the Homebrewery to your personal Google Drive storage?'}
-					<br />
-					<div className='confirm' onClick={toggleGoogleStorage}> Yes </div>
-					<div className='deny'>                                  No  </div>
-				</div>
-			)}
-
-			{alertLoginToTransfer && (
-				<div className='errorContainer' onClick={closeAlerts}>
-					You must be signed in to a Google account to transfer between the homebrewery and Google Drive!
-					<a target='_blank' rel='noopener noreferrer' href={`https://www.naturalcrit.com/login?redirect=${window.location.href}`}>
-						<div className='confirm'> Sign In </div>
-					</a>
-					<div className='deny'>      Not Now </div>
-				</div>
-			)}
-
-			{alertTrashedGoogleBrew && (
-				<div className='errorContainer' onClick={closeAlerts}>
-					This brew is currently in your Trash folder on Google Drive!<br />
-					If you want to keep it, make sure to move it before it is deleted permanently!<br />
-					<div className='confirm'> OK </div>
-				</div>
-			)}
-		</Nav.item>
-	);
 
 	const renderSaveButton = ()=>{
 		// #1 - Currently saving, show SAVING
@@ -353,7 +283,6 @@ const EditPage = (props)=>{
 			</Nav.section>
 
 			<Nav.section>
-				{renderGoogleDriveIcon()}
 				{error
 					? <ErrorNavItem error={error} clearError={clearError} />
 					: <Nav.dropdown className='save-menu'>

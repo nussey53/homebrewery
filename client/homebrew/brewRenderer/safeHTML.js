@@ -3,6 +3,48 @@
 let doc = null;
 let div = null;
 
+const FILE_PROTOCOL = 'file://';
+const fileUrlPattern = /url\(\s*(['"]?)(file:\/\/[^'")]+)\1\s*\)/gi;
+
+const rewriteFileUrlForElectron = (value)=>{
+	if(typeof value !== 'string') return value;
+	const trimmedValue = value.trim();
+	if(!trimmedValue.toLowerCase().startsWith(FILE_PROTOCOL)) return value;
+
+	try {
+		const parsed = new URL(trimmedValue);
+		if(parsed.protocol !== 'file:') return value;
+
+		let filePath = decodeURIComponent(parsed.pathname);
+		if(parsed.host && parsed.host !== 'localhost') {
+			filePath = `\\\\${parsed.host}${filePath.replaceAll('/', '\\')}`;
+		} else if(/^\/[a-zA-Z]:/.test(filePath)) {
+			filePath = filePath.substring(1);
+		}
+
+		return `/local-file?path=${encodeURIComponent(filePath)}`;
+	} catch {
+		return value;
+	}
+};
+
+const rewriteFileUrlsInStyleValue = (styleValue)=>{
+	if(typeof styleValue !== 'string') return styleValue;
+	return styleValue.replace(fileUrlPattern, (_match, quote, rawUrl)=>{
+		return `url(${quote}${rewriteFileUrlForElectron(rawUrl)}${quote})`;
+	});
+};
+
+const rewriteLocalFileAttribute = (attribute)=>{
+	if(attribute.localName === 'src' || attribute.localName === 'href') {
+		return rewriteFileUrlForElectron(attribute.value);
+	}
+	if(attribute.localName === 'style') {
+		return rewriteFileUrlsInStyleValue(attribute.value);
+	}
+	return attribute.value;
+};
+
 function safeHTML(htmlString) {
 	// If the Document interface doesn't exist, exit
 	if(typeof document == 'undefined') return null;
@@ -23,6 +65,7 @@ function safeHTML(htmlString) {
 		(test)=>{return test.localName.indexOf('type') == 0 && test.value.match(/submit/i);},
 		(test)=>{return test.value.replace(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205f\u3000]/g, '').toLowerCase().trim().indexOf('javascript:') == 0;}
 	];
+	const shouldRewriteLocalFiles = Boolean(globalThis?.config?.electron);
 
 
 	elements.forEach((element)=>{
@@ -32,11 +75,18 @@ function safeHTML(htmlString) {
 			return;
 		}
 		// Check remaining elements for blacklisted attributes
-		for (const attribute of element.attributes){
+		for (const attribute of Array.from(element.attributes)){
 			if(blacklistAttrs.some((test)=>{return test(attribute);})) {
 				element.removeAttribute(attribute.localName);
 				break;
 			};
+
+			if(shouldRewriteLocalFiles) {
+				const rewrittenValue = rewriteLocalFileAttribute(attribute);
+				if(rewrittenValue !== attribute.value) {
+					element.setAttribute(attribute.localName, rewrittenValue);
+				}
+			}
 		};
 	});
 

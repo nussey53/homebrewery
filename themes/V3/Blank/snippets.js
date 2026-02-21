@@ -12,6 +12,10 @@ import LicenseMongoosePublishing from './snippets/licenseMongoose.gen.js';
 import TableOfContentsGen        from './snippets/tableOfContents.gen.js';
 import indexGen                  from './snippets/index.gen.js';
 
+const getBaseUrl = (fallback = '')=>{
+	return global?.config?.baseUrl || (typeof window !== 'undefined' ? window.location.origin : fallback);
+};
+
 export default [
 
 	{
@@ -123,10 +127,13 @@ export default [
 				name : 'QR Code',
 				icon : 'fas fa-qrcode',
 				gen  : (brew)=>{
+					const baseUrl = getBaseUrl('/');
+					const shareUrl = `${baseUrl}${brew.shareId ? `/share/${brew.shareId}` : ''}`;
+					if(!/^https?:\/\//i.test(shareUrl)) return '';
 					return `![]` +
 							`(https://api.qrserver.com/v1/create-qr-code/?data=` +
-							`https://homebrewery.naturalcrit.com${brew.shareId ? `/share/${brew.shareId}` : ''}` +
-							`&amp;size=100x100) {width:100px;mix-blend-mode:multiply}`;
+							`${encodeURIComponent(shareUrl)}` +
+						`&amp;size=100x100) {width:100px;mix-blend-mode:multiply}`;
 				}
 			},
 			{
@@ -143,6 +150,7 @@ export default [
 				name : 'Homebrewery Credit',
 				icon : 'fas fa-dice-d20',
 				gen  : function(){
+					const baseUrl = getBaseUrl('/');
 					return dedent`
 						{{homebreweryCredits
 						Made With
@@ -150,7 +158,7 @@ export default [
 						{{homebreweryIcon}}
 						
 						The Homebrewery  
-						[Homebrewery.Naturalcrit.com](https://homebrewery.naturalcrit.com)
+						[Homebrewery](${baseUrl})
 						}}\n\n`;
 				},
 			},
@@ -991,4 +999,3 @@ export default [
 		]
 	},
 ];
-

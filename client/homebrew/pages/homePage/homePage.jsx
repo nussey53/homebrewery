@@ -27,7 +27,6 @@ const { both: RecentNavItem } = RecentNavItems;
 
 
 // Page specific imports
-import { Meta }                               from 'vitreum/headtags';
 
 const BREWKEY  = 'homebrewery-new';
 const STYLEKEY = 'homebrewery-new-style';
@@ -192,7 +191,6 @@ const HomePage =(props)=>{
 
 	return (
 		<div className='homePage sitePage'>
-			<Meta name='google-site-verification' content='NwnAQSSJZzAT7N-p5MY6ydQ7Njm67dtbu73ZSyE5Fy4' />
 			{renderNavbar()}
 			<div className='content'>
 				<SplitPane onDragFinish={handleSplitMove}>
