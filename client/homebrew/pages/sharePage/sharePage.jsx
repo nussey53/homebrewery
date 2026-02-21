@@ -44,13 +44,13 @@ const SharePage = (props)=>{
 	}, []);
 
 	const processShareId = ()=>{
-		return brew.googleId && !brew.stubbed ? brew.googleId + brew.shareId : brew.shareId;
+		return brew.shareId;
 	};
 
 	const renderEditLink = ()=>{
 		if(!brew.editId) return null;
 
-		const editLink = brew.googleId && ! brew.stubbed ? brew.googleId + brew.editId : brew.editId;
+		const editLink = brew.editId;
 
 		return (
 			<Nav.item color='orange' icon='fas fa-pencil-alt' href={`/edit/${editLink}`}>

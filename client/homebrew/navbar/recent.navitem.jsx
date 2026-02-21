@@ -35,10 +35,7 @@ const RecentItems = createReactClass({
 
 		//== Add current brew to appropriate recent items list (depending on storageKey) ==//
 		if(this.props.storageKey == 'edit'){
-			let editId = this.props.brew.editId;
-			if(this.props.brew.googleId && !this.props.brew.stubbed){
-				editId = `${this.props.brew.googleId}${this.props.brew.editId}`;
-			}
+			const editId = this.props.brew.editId;
 			edited = _.filter(edited, (brew)=>{
 				return brew.id !== editId;
 			});
@@ -50,10 +47,7 @@ const RecentItems = createReactClass({
 			});
 		}
 		if(this.props.storageKey == 'view'){
-			let shareId = this.props.brew.shareId;
-			if(this.props.brew.googleId && !this.props.brew.stubbed){
-				shareId = `${this.props.brew.googleId}${this.props.brew.shareId}`;
-			}
+			const shareId = this.props.brew.shareId;
 			viewed = _.filter(viewed, (brew)=>{
 				return brew.id !== shareId;
 			});
@@ -82,18 +76,12 @@ const RecentItems = createReactClass({
 		if(prevProps.brew && this.props.brew.editId !== prevProps.brew.editId) {
 	 		let edited = JSON.parse(localStorage.getItem(EDIT_KEY) || '[]');
 			if(this.props.storageKey == 'edit') {
-				let prevEditId = prevProps.brew.editId;
-				if(prevProps.brew.googleId && !this.props.brew.stubbed){
-					prevEditId = `${prevProps.brew.googleId}${prevProps.brew.editId}`;
-				}
+				const prevEditId = prevProps.brew.editId;
 
 				edited = _.filter(this.state.edit, (brew)=>{
 					return brew.id !== prevEditId;
 				});
-				let editId = this.props.brew.editId;
-				if(this.props.brew.googleId && !this.props.brew.stubbed){
-					editId = `${this.props.brew.googleId}${this.props.brew.editId}`;
-				}
+				const editId = this.props.brew.editId;
 				edited.unshift({
 					id    : editId,
 					title : this.props.brew.title,

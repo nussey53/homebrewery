@@ -32,23 +32,13 @@ const isStaticTheme = (renderer, themeName)=>{
 // };
 
 const MAX_TITLE_LENGTH = 100;
+const GOOGLE_INTEGRATION_ENABLED = false;
 
 const api = {
 	homebrewApi : router,
 	getId       : (req)=>{
-		// Set the id and initial potential google id, where the google id is present on the existing brew.
-		let id = req.params.id, googleId = req.body?.googleId;
-
-		// If the id is longer than 12, then it's a google id + the edit id. This splits the longer id up.
-		if(id.length > 12) {
-			if(id.length >= (33 + 12)) {    // googleId is minimum 33 chars (may increase)
-				googleId = id.slice(0, -12);  // current editId is 12 chars
-			} else {                        // old editIds used to be 10 chars;
-				googleId = id.slice(0, -10);  // if total string is too short, must be old brew
-				console.log('Old brew, using 10-char Id');
-			}
-			id = id.slice(googleId.length);
-		}
+		const id = req.params.id;
+		const googleId = GOOGLE_INTEGRATION_ENABLED ? req.body?.googleId : undefined;
 
 		// ID Validation Checks
 		// Homebrewery ID
@@ -59,7 +49,7 @@ const api = {
 		// Google ID
 		// Typically 33 characters, old format is 44 - always starts with a 1
 		// Managed by Google, may change outside of our control, so any length between 33 and 44 is acceptable
-		if(googleId && !googleId.match(/^1(?:[a-zA-Z0-9-_]{32,43})$/)){
+		if(GOOGLE_INTEGRATION_ENABLED && googleId && !googleId.match(/^1(?:[a-zA-Z0-9-_]{32,43})$/)){
 			throw { name: 'Google ID Error', message: 'Invalid ID', status: 404, HBErrorCode: '12', brewId: id };
 		}
 
@@ -142,7 +132,7 @@ const api = {
 			}
 
 			// If there's a google id, get it if requesting the full brew or if no stub found yet
-			if(googleId && (!stubOnly || !stub)) {
+			if(GOOGLE_INTEGRATION_ENABLED && googleId && (!stubOnly || !stub)) {
 				const oAuth2Client = isOwner ? GoogleActions.authCheck(req.account, res) : undefined;
 
 				const googleBrew = await GoogleActions.getGoogleBrew(oAuth2Client, googleId, id, accessType)
@@ -267,7 +257,7 @@ const api = {
 		newHomebrew.shareId = nanoid(12);
 
 		let googleId, saved;
-		if(saveToGoogle) {
+		if(GOOGLE_INTEGRATION_ENABLED && saveToGoogle) {
 			googleId = await api.newGoogleBrew(req.account, newHomebrew, res);
 
 			if(!googleId) return;
@@ -400,7 +390,7 @@ const api = {
 		const { saveToGoogle, removeFromGoogle } = req.query;
 		let afterSave = async ()=>true;
 
-		if(brew.googleId && removeFromGoogle) {
+		if(GOOGLE_INTEGRATION_ENABLED && brew.googleId && removeFromGoogle) {
 			// If the google id exists and we're removing it from google, set afterSave to delete the google brew and mark the brew's google id as undefined
 			afterSave = async ()=>{
 				return await api.deleteGoogleBrew(req.account, googleId, brew.editId, res)
@@ -411,12 +401,12 @@ const api = {
 			};
 
 			brew.googleId = undefined;
-		} else if(!brew.googleId && saveToGoogle) {
+		} else if(GOOGLE_INTEGRATION_ENABLED && !brew.googleId && saveToGoogle) {
 			// If we don't have a google id and the user wants to save to google, create the google brew and set the google id on the brew
 			brew.googleId = await api.newGoogleBrew(req.account, api.excludeGoogleProps(brew), res);
 
 			if(!brew.googleId) return;
-		} else if(brew.googleId) {
+		} else if(GOOGLE_INTEGRATION_ENABLED && brew.googleId) {
 			// If the google id exists and no other actions are being performed, update the google brew
 			const updated = await GoogleActions.updateGoogleBrew(api.excludeGoogleProps(brew), req.ip);
 
@@ -489,7 +479,7 @@ const api = {
 		const account = req.account;
 		const isOwner = account && (brew.authors.length === 0 || brew.authors[0] === account.username);
 		// If the user is the owner and the file is saved to google, mark the google brew for deletion
-		const shouldDeleteGoogleBrew = googleId && isOwner;
+		const shouldDeleteGoogleBrew = GOOGLE_INTEGRATION_ENABLED && googleId && isOwner;
 
 		if(brew._id) {
 			brew = _.assign(await HomebrewModel.findOne({ _id: brew._id }), brew);

@@ -3,7 +3,6 @@ import React, { useCallback } from 'react';
 import moment from 'moment';
 import request from '../../../../utils/request-middleware.js';
 
-import googleDriveIcon from '../../../../googleDrive.svg';
 import homebreweryIcon from '../../../../thumbnail.svg';
 import dedent from 'dedent';
 
@@ -28,7 +27,7 @@ const BrewItem = ({
 			if(!window.confirm('Are you REALLY sure? You will lose editor access to this document.')) return;
 		}
 
-		request.delete(`/api/${brew.googleId ?? ''}${brew.editId}`).send().end((err, res)=>{
+		request.delete(`/api/${brew.editId}`).send().end((err, res)=>{
 			if(err) reportError(err); else window.location.reload();
 		});
 	}, [brew, reportError]);
@@ -48,8 +47,7 @@ const BrewItem = ({
 	const renderEditLink = ()=>{
 		if(!brew.editId) return null;
 
-		let editLink = brew.editId;
-		if(brew.googleId && !brew.stubbed) editLink = brew.googleId + editLink;
+		const editLink = brew.editId;
 
 		return (
 			<a className='editLink' href={`/edit/${editLink}`} target='_blank' rel='noopener noreferrer'>
@@ -61,10 +59,7 @@ const BrewItem = ({
 	const renderShareLink = ()=>{
 		if(!brew.shareId) return null;
 
-		let shareLink = brew.shareId;
-		if(brew.googleId && !brew.stubbed) {
-			shareLink = brew.googleId + shareLink;
-		}
+		const shareLink = brew.shareId;
 
 		return (
 			<a className='shareLink' href={`/share/${shareLink}`} target='_blank' rel='noopener noreferrer'>
@@ -76,10 +71,7 @@ const BrewItem = ({
 	const renderDownloadLink = ()=>{
 		if(!brew.shareId) return null;
 
-		let shareLink = brew.shareId;
-		if(brew.googleId && !brew.stubbed) {
-			shareLink = brew.googleId + shareLink;
-		}
+		const shareLink = brew.shareId;
 
 		return (
 			<a className='downloadLink' href={`/download/${shareLink}`}>
@@ -90,16 +82,6 @@ const BrewItem = ({
 
 	const renderStorageIcon = ()=>{
 		if(!renderStorage) return null;
-		if(brew.googleId) {
-			return (
-				<span title={brew.webViewLink ? 'Your Google Drive Storage' : 'Another User\'s Google Drive Storage'}>
-					<a href={brew.webViewLink} target='_blank'>
-						<img className='googleDriveIcon' src={googleDriveIcon} alt='googleDriveIcon' />
-					</a>
-				</span>
-			);
-		}
-
 		return (
 			<span title='Homebrewery Storage'>
 				<img className='homebreweryIcon' src={homebreweryIcon} alt='homebreweryIcon' />

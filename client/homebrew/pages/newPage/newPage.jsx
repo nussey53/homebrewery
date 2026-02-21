@@ -32,7 +32,6 @@ const BREWKEY  = 'HB_newPage_content';
 const STYLEKEY = 'HB_newPage_style';
 const METAKEY  = 'HB_newPage_metadata';
 const SNIPKEY  = 'HB_newPage_snippets';
-const SAVEKEYPREFIX  = 'HB_editor_defaultSave_';
 
 const useLocalStorage = true;
 const neverSaved      = true;
@@ -45,7 +44,6 @@ const NewPage = (props)=>{
 
 	const [currentBrew               , setCurrentBrew               ] = useState(props.brew);
 	const [isSaving                  , setIsSaving                  ] = useState(false);
-	const [saveGoogle                , setSaveGoogle                ] = useState(global.account?.googleId ? true : false);
 	const [error                     , setError                     ] = useState(null);
 	const [HTMLErrors                , setHTMLErrors                ] = useState(Markdown.validate(props.brew.text));
 	const [currentEditorViewPageNum  , setCurrentEditorViewPageNum  ] = useState(1);
@@ -97,12 +95,8 @@ const NewPage = (props)=>{
 			brew.lang     = metaStorage?.lang     ?? brew.lang;
 		}
 
-		const SAVEKEY = `${SAVEKEYPREFIX}${global.account?.username}`;
-		const saveStorage = localStorage.getItem(SAVEKEY) || 'HOMEBREWERY';
-
 		setCurrentBrew(brew);
 		lastSavedBrew.current = brew;
-		setSaveGoogle(saveStorage == 'GOOGLE-DRIVE' && saveGoogle);
 
 		localStorage.setItem(BREWKEY, brew.text);
 		if(brew.style)
@@ -161,7 +155,7 @@ const NewPage = (props)=>{
 		updatedBrew.pageCount = (updatedBrew.text.match(pageRegex) || []).length + 1;
 
 		const res = await request
-			.post(`/api${saveGoogle ? '?saveToGoogle=true' : ''}`)
+			.post('/api')
 			.send(updatedBrew)
 			.catch((err)=>{
 				setIsSaving(false);

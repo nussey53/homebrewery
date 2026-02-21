@@ -123,9 +123,11 @@ export default [
 				name : 'QR Code',
 				icon : 'fas fa-qrcode',
 				gen  : (brew)=>{
+					const baseUrl = global?.config?.baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
+					const shareUrl = `${baseUrl}${brew.shareId ? `/share/${brew.shareId}` : ''}`;
 					return `![]` +
 							`(https://api.qrserver.com/v1/create-qr-code/?data=` +
-							`https://homebrewery.naturalcrit.com${brew.shareId ? `/share/${brew.shareId}` : ''}` +
+							`${encodeURIComponent(shareUrl)}` +
 							`&amp;size=100x100) {width:100px;mix-blend-mode:multiply}`;
 				}
 			},
@@ -143,6 +145,7 @@ export default [
 				name : 'Homebrewery Credit',
 				icon : 'fas fa-dice-d20',
 				gen  : function(){
+					const baseUrl = global?.config?.baseUrl || (typeof window !== 'undefined' ? window.location.origin : '/');
 					return dedent`
 						{{homebreweryCredits
 						Made With
@@ -150,7 +153,7 @@ export default [
 						{{homebreweryIcon}}
 						
 						The Homebrewery  
-						[Homebrewery.Naturalcrit.com](https://homebrewery.naturalcrit.com)
+						[Homebrewery](${baseUrl})
 						}}\n\n`;
 				},
 			},
@@ -991,4 +994,3 @@ export default [
 		]
 	},
 ];
-

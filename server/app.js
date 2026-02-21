@@ -20,7 +20,6 @@ import api from './homebrew.api.js';
 const { homebrewApi, getBrew, getUsersBrewThemes, getCSS } = api;
 import adminApi                    from './admin.api.js';
 import vaultApi                    from './vault.api.js';
-import GoogleActions               from './googleActions.js';
 import serveCompressedStaticAssets from './static-assets.mv.js';
 import sanitizeFilename            from 'sanitize-filename';
 import asyncHandler                from 'express-async-handler';
@@ -64,19 +63,11 @@ const localImageExtensions = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', 
 
 const corsOptions = {
 	origin : (origin, callback)=>{
-
-		const allowedOrigins = [
-			'https://homebrewery.naturalcrit.com',
-			'https://www.naturalcrit.com',
-			'https://naturalcrit-stage.herokuapp.com',
-			'https://homebrewery-stage.herokuapp.com',
-		];
+		const allowedOrigins = [config.get('publicUrl')].filter(Boolean);
 
 		const localNetworkRegex = /^http:\/\/(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+):\d+$/;
 
-		const herokuRegex = /^https:\/\/(?:homebrewery-pr-\d+\.herokuapp\.com|naturalcrit-pr-\d+\.herokuapp\.com)$/; // Matches any Heroku app
-
-		if(!origin || allowedOrigins.includes(origin) || herokuRegex.test(origin) || (isLocalEnvironment && localNetworkRegex.test(origin))) {
+		if(!origin || allowedOrigins.includes(origin) || (isLocalEnvironment && localNetworkRegex.test(origin))) {
 			callback(null, true);
 		} else {
 			console.log(origin, 'not allowed');
@@ -101,10 +92,6 @@ app.use((req, res, next)=>{
 		}
 	}
 
-	req.config = {
-		google_client_id     : config.get('google_client_id'),
-		google_client_secret : config.get('google_client_secret')
-	};
 	return next();
 });
 
@@ -123,7 +110,7 @@ String.prototype.replaceAll = function(s, r){return this.split(s).join(r);};
 const defaultMetaTags = {
 	site_name   : 'The Homebrewery - Make your Homebrew content look legit!',
 	title       : 'The Homebrewery',
-	description : 'A NaturalCrit Tool for creating authentic Homebrews using Markdown.',
+	description : 'Create authentic Homebrews using Markdown.',
 	image       : `${config.get('publicUrl')}/thumbnail.png`,
 	type        : 'website'
 };
@@ -311,33 +298,6 @@ app.get('/user/:username', dbCheck, async (req, res, next)=>{
 
 	brews.forEach((brew)=>brew.stubbed = true); //All brews from MongoDB are "stubbed"
 
-	if(ownAccount && req?.account?.googleId){
-		const auth = await GoogleActions.authCheck(req.account, res);
-		let googleBrews = await GoogleActions.listGoogleBrews(auth)
-			.catch((err)=>{
-				console.error(err);
-			});
-
-		// If stub matches file from Google, use Google metadata over stub metadata
-		if(googleBrews && googleBrews.length > 0) {
-			for (const brew of brews.filter((brew)=>brew.googleId)) {
-				const match = googleBrews.findIndex((b)=>b.editId === brew.editId);
-				if(match !== -1) {
-					brew.googleId = googleBrews[match].googleId;
-					brew.pageCount = googleBrews[match].pageCount;
-					brew.renderer = googleBrews[match].renderer;
-					brew.version = googleBrews[match].version;
-					brew.webViewLink = googleBrews[match].webViewLink;
-					googleBrews.splice(match, 1);
-				}
-			}
-
-			//Remaining unstubbed google brews display current user as author
-			googleBrews = googleBrews.map((brew)=>({ ...brew, authors: [req.account.username] }));
-			brews = _.concat(brews, googleBrews);
-		}
-	}
-
 	req.brews = _.map(brews, (brew)=>{
 		// Clean up brew data
 		brew.title = brew.title?.trim();
@@ -446,14 +406,7 @@ app.get('/share/:id', dbCheck, asyncHandler(getBrew('share')), asyncHandler(asyn
 
 	// increase visitor view count, do not include visits by author(s)
 	if(!brew.authors.includes(req.account?.username)){
-		if(req.params.id.length > 12 && !brew._id) {
-			const googleId = brew.googleId;
-			const shareId = brew.shareId;
-			await GoogleActions.increaseView(googleId, shareId, 'share', brew)
-				.catch((err)=>{next(err);});
-		} else {
-			await HomebrewModel.increaseView({ shareId: brew.shareId });
-		}
+		await HomebrewModel.increaseView({ shareId: brew.shareId });
 	};
 
 	brew.authors.includes(req.account?.username) ? sanitizeBrew(req.brew, 'shareAuthor') : sanitizeBrew(req.brew, 'share');
@@ -475,19 +428,8 @@ app.get('/account', dbCheck, asyncHandler(async (req, res, next)=>{
 		return next(error);
 	};
 
-	let auth;
-	let googleCount = [];
 	if(req.account) {
-		if(req.account.googleId) {
-			auth = await GoogleActions.authCheck(req.account, res, false);
-
-			googleCount = await GoogleActions.listGoogleBrews(auth)
-				.catch((err)=>{
-					console.error(err);
-				});
-		}
-
-		const query = { authors: req.account.username, googleId: { $exists: false } };
+		const query = { authors: req.account.username };
 		const mongoCount = await HomebrewModel.countDocuments(query)
 			.catch((err)=>{
 				console.log(err);
@@ -497,10 +439,10 @@ app.get('/account', dbCheck, asyncHandler(async (req, res, next)=>{
 		data.accountDetails = {
 			username    : req.account.username,
 			issued      : req.account.issued,
-			googleId    : Boolean(req.account.googleId),
-			authCheck   : Boolean(req.account.googleId && auth?.credentials.access_token),
+			googleId    : false,
+			authCheck   : false,
 			mongoCount  : mongoCount,
-			googleCount : googleCount?.length
+			googleCount : 0
 		};
 	}
 

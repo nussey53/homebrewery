@@ -40,7 +40,7 @@ If you want to save ink or have a monochrome printer, add the **PRINT → {{fas,
 
 {{artist,bottom:160px,left:100px
 ##### Homebrew Mug
-[naturalcrit](https://homebrew.naturalcrit.com)
+[homebrewery](/)
 }}
 
 {{pageNumber 1}}
